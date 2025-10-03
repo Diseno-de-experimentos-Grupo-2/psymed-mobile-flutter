@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:trying_flutter/providers/medication_provider.dart';
 import 'providers/auth_provider.dart';
 import 'screens/login_screen.dart';
 
@@ -17,6 +18,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => MedicationProvider()),
       ],
       child: MaterialApp(
         title: 'Mental Health App',
