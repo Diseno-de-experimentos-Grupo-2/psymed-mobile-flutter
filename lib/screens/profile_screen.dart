@@ -1,7 +1,7 @@
+// lib/screens/profile_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import 'edit_profile_screen.dart';
 import 'login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -15,7 +15,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    // Cargar perfil al iniciar
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       if (authProvider.patientProfile == null && authProvider.isAuthenticated) {
@@ -25,14 +24,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _handleLogout() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    await authProvider.signOut();
-    
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-      );
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cerrar sesión'),
+        content: const Text('¿Estás seguro que deseas cerrar sesión?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Cerrar sesión'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      await authProvider.signOut();
+      
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+        );
+      }
     }
   }
 
@@ -40,14 +60,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Profile"),
+        title: const Text("Mi Perfil"),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, color: Colors.red),
             onPressed: _handleLogout,
             tooltip: 'Cerrar sesión',
           ),
@@ -64,7 +84,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           final profile = authProvider.patientProfile;
           final user = authProvider.currentUser;
 
-          // Si no hay perfil de paciente, mostrar mensaje
           if (profile == null) {
             return Center(
               child: Padding(
@@ -87,7 +106,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 10),
                     const Text(
-                      'No se pudo cargar tu perfil de paciente',
+                      'No se pudo cargar tu perfil',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.grey),
                     ),
@@ -118,98 +137,112 @@ class _ProfileScreenState extends State<ProfileScreen> {
             );
           }
 
-          // Si hay perfil, mostrarlo
           return SafeArea(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.blue.shade100,
-                  child: Text(
-                    profile.fullName.isNotEmpty 
-                        ? profile.fullName[0].toUpperCase()
-                        : 'P',
-                    style: const TextStyle(
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
+                  CircleAvatar(
+                    radius: 60,
+                    backgroundColor: Colors.blue.shade100,
+                    child: Text(
+                      profile.fullName.isNotEmpty 
+                          ? profile.fullName[0].toUpperCase()
+                          : 'P',
+                      style: const TextStyle(
+                        fontSize: 48,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  profile.fullName,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                  const SizedBox(height: 20),
+                  Text(
+                    profile.fullName,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  profile.email,
-                  style: const TextStyle(color: Colors.grey),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  profile.streetAddress,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 20),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Card(
+                  const SizedBox(height: 8),
+                  Text(
+                    user?.username ?? 'N/A',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  Card(
                     elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.all(20.0),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildInfoRow(
-                            'Usuario',
-                            user?.username ?? 'N/A',
-                            Icons.account_circle,
+                          const Text(
+                            'Información Personal',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                          const Divider(),
+                          const SizedBox(height: 20),
                           _buildInfoRow(
+                            Icons.email_outlined,
+                            'Correo Electrónico',
+                            profile.email,
+                          ),
+                          const Divider(height: 30),
+                          _buildInfoRow(
+                            Icons.location_on_outlined,
+                            'Dirección',
+                            profile.streetAddress,
+                          ),
+                          const Divider(height: 30),
+                          _buildInfoRow(
+                            Icons.badge_outlined,
                             'ID de Paciente',
                             '#${profile.id}',
-                            Icons.medical_information,
+                          ),
+                          const Divider(height: 30),
+                          _buildInfoRow(
+                            Icons.medical_information_outlined,
+                            'ID de Profesional',
+                            '#${profile.professionalId}',
                           ),
                         ],
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 40,
-                      vertical: 12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const EditProfileScreen(),
+                  const SizedBox(height: 30),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        side: const BorderSide(color: Colors.red),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
-                    ).then((_) {
-                      // Recargar perfil al volver
-                      authProvider.reloadProfile();
-                    });
-                  },
-                  child: const Text(
-                    "Edit Profile",
-                    style: TextStyle(color: Colors.white),
+                      onPressed: _handleLogout,
+                      icon: const Icon(Icons.logout),
+                      label: const Text(
+                        "Cerrar Sesión",
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
           );
         },
@@ -217,20 +250,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, IconData icon) {
+  Widget _buildInfoRow(IconData icon, String label, String value) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: Colors.blue),
-        const SizedBox(width: 12),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.blue.shade50,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: 24, color: Colors.blue),
+        ),
+        const SizedBox(width: 16),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(height: 4),

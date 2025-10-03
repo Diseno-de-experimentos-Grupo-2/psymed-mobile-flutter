@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'home_screen.dart';
-import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,12 +13,12 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -29,12 +28,11 @@ class _LoginScreenState extends State<LoginScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       
       final success = await authProvider.signIn(
-        _emailController.text.trim(),
+        _usernameController.text.trim(),
         _passwordController.text,
       );
 
       if (success && mounted) {
-        // Navegar a home - el perfil se carga automáticamente
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -62,7 +60,6 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 20),
-                // Logo
                 const Center(
                   child: CircleAvatar(
                     radius: 60,
@@ -70,16 +67,29 @@ class _LoginScreenState extends State<LoginScreen> {
                     backgroundColor: Colors.transparent,
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 30),
                 const Text(
-                  "Iniciar Sesión",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  "Bienvenido",
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
+                Text(
+                  "Inicia sesión con tu cuenta",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 40),
                 TextFormField(
-                  controller: _emailController,
+                  controller: _usernameController,
                   decoration: const InputDecoration(
-                    hintText: "Correo electrónico o nombre de usuario",
+                    labelText: "Usuario",
+                    hintText: "Ingresa tu nombre de usuario",
+                    prefixIcon: Icon(Icons.person_outline),
                     filled: true,
                   ),
                   validator: (value) {
@@ -94,7 +104,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _passwordController,
                   obscureText: true,
                   decoration: const InputDecoration(
-                    hintText: "Contraseña",
+                    labelText: "Contraseña",
+                    hintText: "Ingresa tu contraseña",
+                    prefixIcon: Icon(Icons.lock_outline),
                     filled: true,
                   ),
                   validator: (value) {
@@ -104,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 30),
                 Consumer<AuthProvider>(
                   builder: (context, authProvider, child) {
                     return SizedBox(
@@ -115,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
                         onPressed: authProvider.isLoading ? null : _handleLogin,
                         child: authProvider.isLoading
@@ -129,26 +141,24 @@ class _LoginScreenState extends State<LoginScreen> {
                               )
                             : const Text(
                                 "Iniciar Sesión",
-                                style: TextStyle(color: Colors.white, fontSize: 16),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                       ),
                     );
                   },
                 ),
                 const SizedBox(height: 20),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const RegisterScreen(),
-                      ),
-                    );
-                  },
-                  child: const Text(
-                    "Crear una cuenta nueva",
-                    style: TextStyle(color: Colors.grey),
+                Text(
+                  "Si no tienes cuenta, contacta a tu profesional de salud",
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
                   ),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),

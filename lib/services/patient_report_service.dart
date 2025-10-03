@@ -69,6 +69,14 @@ class PatientReportService {
         return MoodState.fromJson(_parseResponse(response));
       } else if (response.statusCode == 401) {
         throw Exception('Token inválido o expirado');
+      } else if (response.statusCode == 400) {
+        // Manejar el error específico de "ya registrado hoy"
+        final errorBody = response.body;
+        if (errorBody.contains('twice in the same day') || 
+            errorBody.contains('mood state twice')) {
+          throw Exception('Ya has registrado tu estado de ánimo hoy');
+        }
+        throw Exception('Datos inválidos para guardar estado de ánimo');
       } else {
         throw Exception('Error al guardar estado de ánimo');
       }
@@ -131,6 +139,13 @@ class PatientReportService {
         return BiologicalFunction.fromJson(_parseResponse(response));
       } else if (response.statusCode == 401) {
         throw Exception('Token inválido o expirado');
+      } else if (response.statusCode == 400) {
+        // Manejar el error específico de "ya registrado hoy"
+        final errorBody = response.body;
+        if (errorBody.contains('twice in the same day')) {
+          throw Exception('Ya has registrado tus funciones biológicas hoy');
+        }
+        throw Exception('Datos inválidos para guardar funciones biológicas');
       } else {
         throw Exception('Error al guardar funciones biológicas');
       }

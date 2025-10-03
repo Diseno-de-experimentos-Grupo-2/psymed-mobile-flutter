@@ -11,6 +11,7 @@ class PatientReportProvider with ChangeNotifier {
   bool _isLoading = false;
   bool _isSaving = false;
   String? _errorMessage;
+  DateTime? _lastReportDate;
 
   List<MoodState> get moodStates => _moodStates;
   List<BiologicalFunction> get biologicalFunctions => _biologicalFunctions;
@@ -27,6 +28,12 @@ class PatientReportProvider with ChangeNotifier {
     try {
       _moodStates = await _reportService.getMoodStates(patientId, token);
       _biologicalFunctions = await _reportService.getBiologicalFunctions(patientId, token);
+      
+      // Actualizar fecha del último reporte si hay datos
+      if (_moodStates.isNotEmpty) {
+        _lastReportDate = DateTime.now();
+      }
+      
       _isLoading = false;
       notifyListeners();
       return true;
@@ -48,6 +55,13 @@ class PatientReportProvider with ChangeNotifier {
     required int sleep,
     required int energy,
   }) async {
+    // Validar que no se haya registrado hoy
+    if (hasReportedToday()) {
+      _errorMessage = 'Ya has registrado tu estado de ánimo hoy';
+      notifyListeners();
+      return false;
+    }
+
     _isSaving = true;
     _errorMessage = null;
     notifyListeners();
@@ -66,6 +80,9 @@ class PatientReportProvider with ChangeNotifier {
       );
       await _reportService.createBiologicalFunction(patientId, bioRequest, token);
 
+      // Actualizar fecha del último reporte
+      _lastReportDate = DateTime.now();
+
       // Recargar datos
       await loadTodayReports(patientId, token);
 
@@ -82,14 +99,20 @@ class PatientReportProvider with ChangeNotifier {
 
   // Verificar si ya se registró hoy
   bool hasReportedToday() {
-    // Aquí podrías agregar lógica adicional para verificar la fecha
-    return _moodStates.isNotEmpty && _biologicalFunctions.isNotEmpty;
+    if (_lastReportDate == null) return false;
+    
+    final now = DateTime.now();
+    return _lastReportDate!.year == now.year &&
+           _lastReportDate!.month == now.month &&
+           _lastReportDate!.day == now.day;
   }
 
+  // Limpiar reportes (al cerrar sesión)
   void clearReports() {
     _moodStates = [];
     _biologicalFunctions = [];
     _errorMessage = null;
+    _lastReportDate = null;
     notifyListeners();
   }
 }

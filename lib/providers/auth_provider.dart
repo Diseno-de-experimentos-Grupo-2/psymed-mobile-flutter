@@ -1,3 +1,4 @@
+// lib/providers/auth_provider.dart
 import 'package:flutter/material.dart';
 import 'package:trying_flutter/services/api_services.dart';
 import '../models/user_model.dart';
@@ -53,49 +54,6 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  // Registrar usuario con perfil de paciente
-  Future<bool> signUpWithProfile({
-    required String username,
-    required String password,
-    required String firstName,
-    required String lastName,
-    required String email,
-    required String street,
-    required String city,
-    required String country,
-    required int professionalId,
-  }) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      // Crear el perfil de paciente (esto crea tanto la cuenta como el perfil)
-      final profileRequest = PatientProfileRequest(
-        firstName: firstName,
-        lastName: lastName,
-        street: street,
-        city: city,
-        country: country,
-        email: email,
-        username: username,
-        password: password,
-        professionalId: professionalId,
-      );
-      
-      _patientProfile = await _apiService.createPatientProfile(profileRequest);
-      
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
-  }
-
   // Cargar perfil del usuario
   Future<void> _loadUserProfile() async {
     if (_userId == null || _token == null) return;
@@ -111,11 +69,10 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       print('Error al cargar perfil: $e');
       // No lanzamos error aquí porque el login fue exitoso
-      // El perfil podría no existir aún
     }
   }
 
-  // Recargar perfil (útil después de editar)
+  // Recargar perfil
   Future<bool> reloadProfile() async {
     if (_userId == null || _token == null) return false;
 
