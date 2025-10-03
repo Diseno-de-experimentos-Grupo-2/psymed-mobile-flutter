@@ -112,6 +112,7 @@ class ApiService {
   Future<PatientProfile> createPatientProfile(PatientProfileRequest request) async {
     try {
       print('Creando perfil de paciente con URL: $baseUrl/patient-profiles');
+      print('Datos: ${json.encode(request.toJson())}');
       
       final response = await http.post(
         Uri.parse('$baseUrl/patient-profiles'),
@@ -127,13 +128,21 @@ class ApiService {
         },
       );
       
-      if (response.statusCode == 200) {
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+      
+      if (response.statusCode == 200 || response.statusCode == 201) {
         return PatientProfile.fromJson(_parseResponse(response));
       } else {
-        final errorBody = _parseResponse(response);
-        throw Exception('Error al crear perfil: ${errorBody['message'] ?? response.body}');
+        if (response.body.isNotEmpty) {
+          final errorBody = _parseResponse(response);
+          throw Exception('Error al crear perfil: ${errorBody['message'] ?? response.body}');
+        } else {
+          throw Exception('Error al crear perfil. Status: ${response.statusCode}');
+        }
       }
     } catch (e) {
+      print('Exception en createPatientProfile: $e');
       if (e.toString().contains('SocketException') || 
           e.toString().contains('Failed host lookup')) {
         throw Exception('No se puede conectar al servidor. Verifica la URL y que el backend esté ejecutándose.');

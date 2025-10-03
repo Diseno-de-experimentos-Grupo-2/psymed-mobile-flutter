@@ -1,12 +1,9 @@
 // lib/screens/login_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
-
-// IMPORTANTE: Asegúrate de haber ejecutado 'flutter pub get' después de agregar las dependencias
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -37,6 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (success && mounted) {
+        // Navegar a home - el perfil se carga automáticamente
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),

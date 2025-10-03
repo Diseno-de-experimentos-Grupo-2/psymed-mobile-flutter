@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import 'home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -15,12 +16,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  
+  // Campos adicionales para el perfil de paciente
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _streetController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _countryController = TextEditingController();
+  final _professionalIdController = TextEditingController();
 
   @override
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _emailController.dispose();
+    _streetController.dispose();
+    _cityController.dispose();
+    _countryController.dispose();
+    _professionalIdController.dispose();
     super.dispose();
   }
 
@@ -38,21 +55,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       
-      // Solo registramos pacientes - siempre enviar ROLE_PATIENT
-      final success = await authProvider.signUp(
-        _usernameController.text.trim(),
-        _passwordController.text,
-        'ROLE_PATIENT', // El backend espera exactamente este formato
+      // Crear cuenta y perfil de paciente
+      final success = await authProvider.signUpWithProfile(
+        username: _usernameController.text.trim(),
+        password: _passwordController.text,
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        email: _emailController.text.trim(),
+        street: _streetController.text.trim(),
+        city: _cityController.text.trim(),
+        country: _countryController.text.trim(),
+        professionalId: int.tryParse(_professionalIdController.text.trim()) ?? 0,
       );
 
       if (success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Usuario registrado exitosamente'),
-            backgroundColor: Colors.green,
-          ),
+        // Hacer login automáticamente después del registro
+        final loginSuccess = await authProvider.signIn(
+          _usernameController.text.trim(),
+          _passwordController.text,
         );
-        Navigator.pop(context);
+        
+        if (loginSuccess && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Cuenta creada exitosamente'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // Navegar directamente a HomeScreen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+          );
+        } else {
+          // Si el login automático falla, solo volver atrás
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Usuario registrado. Por favor inicia sesión'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pop(context);
+        }
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -147,6 +191,136 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Por favor confirma tu contraseña';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 30),
+                const Text(
+                  "Información personal",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 20),
+                TextFormField(
+                  controller: _firstNameController,
+                  decoration: const InputDecoration(
+                    labelText: "Nombre",
+                    hintText: "Ingresa tu nombre",
+                    filled: true,
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor ingresa tu nombre';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 15),
+                TextFormField(
+                  controller: _lastNameController,
+                  decoration: const InputDecoration(
+                    labelText: "Apellido",
+                    hintText: "Ingresa tu apellido",
+                    filled: true,
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor ingresa tu apellido';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 15),
+                TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(
+                    labelText: "Correo electrónico",
+                    hintText: "ejemplo@correo.com",
+                    filled: true,
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor ingresa tu correo';
+                    }
+                    if (!value.contains('@')) {
+                      return 'Ingresa un correo válido';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 30),
+                const Text(
+                  "Dirección",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 20),
+                TextFormField(
+                  controller: _streetController,
+                  decoration: const InputDecoration(
+                    labelText: "Calle",
+                    hintText: "Av. Principal 123",
+                    filled: true,
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor ingresa tu dirección';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 15),
+                TextFormField(
+                  controller: _cityController,
+                  decoration: const InputDecoration(
+                    labelText: "Ciudad",
+                    hintText: "Lima",
+                    filled: true,
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor ingresa tu ciudad';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 15),
+                TextFormField(
+                  controller: _countryController,
+                  decoration: const InputDecoration(
+                    labelText: "País",
+                    hintText: "Perú",
+                    filled: true,
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor ingresa tu país';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 15),
+                TextFormField(
+                  controller: _professionalIdController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: "ID del Profesional asignado",
+                    hintText: "Ingresa el ID de tu psicólogo/psiquiatra",
+                    filled: true,
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor ingresa el ID del profesional';
+                    }
+                    if (int.tryParse(value) == null) {
+                      return 'Ingresa un número válido';
                     }
                     return null;
                   },
