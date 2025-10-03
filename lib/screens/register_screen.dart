@@ -1,10 +1,7 @@
 // lib/screens/register_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-
-// IMPORTANTE: Asegúrate de haber ejecutado 'flutter pub get' después de agregar las dependencias
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -18,9 +15,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
-  String _selectedRole = 'PATIENT';
-  final List<String> _roles = ['PATIENT', 'PROFESSIONAL'];
 
   @override
   void dispose() {
@@ -44,10 +38,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       
+      // Solo registramos pacientes - siempre enviar ROLE_PATIENT
       final success = await authProvider.signUp(
         _usernameController.text.trim(),
         _passwordController.text,
-        _selectedRole,
+        'ROLE_PATIENT', // El backend espera exactamente este formato
       );
 
       if (success && mounted) {
@@ -154,32 +149,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       return 'Por favor confirma tu contraseña';
                     }
                     return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  "Tipo de cuenta",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 10),
-                DropdownButtonFormField<String>(
-                  initialValue: _selectedRole,
-                  decoration: const InputDecoration(
-                    filled: true,
-                    border: OutlineInputBorder(),
-                  ),
-                  items: _roles.map((String role) {
-                    return DropdownMenuItem<String>(
-                      value: role,
-                      child: Text(
-                        role == 'PATIENT' ? 'Paciente' : 'Profesional',
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedRole = newValue!;
-                    });
                   },
                 ),
                 const SizedBox(height: 30),
